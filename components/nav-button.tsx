@@ -1,5 +1,5 @@
 import Link from "next/link";
-import React from "react";
+import React, { ReactNode } from "react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 
@@ -7,9 +7,14 @@ type Props = {
   href: string;
   label: string;
   isActive: boolean;
+  children?: ReactNode;
 };
 
-export const NavButton = ({ href, label, isActive }: Props) => {
+export const NavButton: React.FC<Props> = ({
+  href,
+  label,
+  isActive,
+}: Props) => {
   return (
     <Button
       asChild
