@@ -15,6 +15,13 @@
       "when": 1720600751106,
       "tag": "0001_high_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1720608100589,
+      "tag": "0002_fair_morph",
+      "breakpoints": true
     }
   ]
 }

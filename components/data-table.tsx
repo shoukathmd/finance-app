@@ -90,7 +90,7 @@ export function DataTable<TData, TValue>({
             onClick={async () => {
               const ok = await confirm();
 
-              if (ok) {
+              if (ok && onDelete) {
                 onDelete(table.getFilteredSelectedRowModel().rows);
                 table.resetRowSelection();
               }
