@@ -6,22 +6,22 @@ import { client } from "@/lib/hono";
 
 // Define the response and request types
 type ResponseType = InferResponseType<
-  (typeof client.api.accounts)[":id"]["$patch"]
+  (typeof client.api.categories)[":id"]["$patch"]
 >;
 type RequestType = InferRequestType<
-  (typeof client.api.accounts)[":id"]["$patch"]
+  (typeof client.api.categories)[":id"]["$patch"]
 >["json"];
 
-export const useEditAccount = (id?: string) => {
+export const useEditCategory = (id?: string) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async (json) => {
       console.log("json:", JSON.stringify(json));
       if (!id) {
-        throw new Error("Account ID is required for editing");
+        throw new Error("Category ID is required for editing");
       }
-      const response = await client.api.accounts[":id"]["$patch"]({
+      const response = await client.api.categories[":id"]["$patch"]({
         param: { id },
         json,
       });
@@ -31,14 +31,14 @@ export const useEditAccount = (id?: string) => {
       return await response.json();
     },
     onSuccess: () => {
-      toast.success("Account updated");
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["account", { id }] });
+      toast.success("Category updated");
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["category", { id }] });
       queryClient.invalidateQueries({ queryKey: ["summary"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
     onError: (error) => {
-      toast.error("Failed to edit account: " + error.message);
+      toast.error("Failed to edit category: " + error.message);
     },
   });
 

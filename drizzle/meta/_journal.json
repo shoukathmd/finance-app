@@ -8,6 +8,13 @@
       "when": 1720507153594,
       "tag": "0000_thick_menace",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1720600751106,
+      "tag": "0001_high_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }
