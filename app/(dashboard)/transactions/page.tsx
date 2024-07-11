@@ -54,7 +54,7 @@ const TransactionPage = () => {
         <CardContent>
           <DataTable
             columns={columns}
-            data={accounts}
+            data={transactions}
             filterKey="name"
             disabled={isDisabled}
             onDelete={(row) => {
