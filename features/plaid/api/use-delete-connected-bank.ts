@@ -8,7 +8,7 @@ type ResponseType = InferResponseType<
   200
 >;
 
-const useDeleteConnectedBank = () => {
+export const useDeleteConnectedBank = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation<ResponseType, Error>({
     mutationFn: async () => {

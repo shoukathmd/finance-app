@@ -6,6 +6,7 @@ import plaid from "./plaid";
 
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
+import subscriptions from "./subscriptions";
 
 export const runtime = "nodejs";
 const app = new Hono().basePath("/api");
@@ -15,7 +16,8 @@ const routes = app
   .route("/summary", summary)
   .route("/accounts", accounts)
   .route("/categories", categories)
-  .route("/transactions", transactions);
+  .route("/transactions", transactions)
+  .route("/subscriptions", subscriptions);
 
 export const GET = handle(app);
 export const POST = handle(app);

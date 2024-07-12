@@ -6,6 +6,9 @@ import { PlaidConnect } from "@/features/plaid/components/plaid-connect";
 import { PlaidDisconnect } from "@/features/plaid/components/plaid-disconnect";
 import { useGetConnectedBank } from "@/features/plaid/api/use-get-connected-banks";
 
+import { useGetSubscription } from "@/features/subscriptions/api/use-get-subscription";
+import { SubscriptionCheckout } from "@/features/subscriptions/components/subscription-checkout";
+
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +17,10 @@ import { Separator } from "@/components/ui/separator";
 export const SettingsCard = () => {
   const { data: connectedBank, isLoading: isLoadingConnectedBank } =
     useGetConnectedBank();
+  const { data: subscription, isLoading: isLoadingSubscription } =
+    useGetSubscription();
 
-  if (isLoadingConnectedBank) {
+  if (isLoadingConnectedBank || isLoadingSubscription) {
     return (
       <Card className="border-none drop-shadow-sm">
         <CardHeader>
@@ -63,9 +68,17 @@ export const SettingsCard = () => {
             Subscription
           </p>
           <div className="w-full flex items-center justify-between">
-            <div className={cn("text-sm truncate flex items-center")}>
-              No subscription active
+            <div
+              className={cn(
+                "text-sm truncate flex items-center",
+                !subscription && "text-muted-foreground"
+              )}
+            >
+              {subscription
+                ? `Subscription ${subscription.status}`
+                : "No subscription active"}
             </div>
+            <SubscriptionCheckout />
           </div>
         </div>
       </CardContent>
