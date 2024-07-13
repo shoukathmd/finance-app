@@ -15,7 +15,9 @@ export const useCheckoutSubscription = () => {
       const response = await client.api.subscriptions.checkout.$post();
 
       if (!response.ok) {
-        throw Error("Failed to create URL");
+        throw Error(
+          "Failed to create URL reason : " + JSON.stringify(response)
+        );
       }
 
       return await response.json();
@@ -23,8 +25,8 @@ export const useCheckoutSubscription = () => {
     onSuccess: ({ data }) => {
       window.location.href = data;
     },
-    onError: () => {
-      toast.error("Failed to create URL");
+    onError: (response) => {
+      toast.error("Failed to create URL reason : " + JSON.stringify(response));
     },
   });
 
