@@ -15,7 +15,9 @@ export const useCreateLinkToken = () => {
       const response = await client.api.plaid["create-link-token"].$post();
 
       if (!response.ok) {
-        throw Error("Failed to create link token");
+        throw Error(
+          "Failed to create link token reason : " + JSON.stringify(response)
+        );
       }
 
       return await response.json();
@@ -23,8 +25,10 @@ export const useCreateLinkToken = () => {
     onSuccess: () => {
       toast.success("Link token created");
     },
-    onError: () => {
-      toast.error("Failed to create link token");
+    onError: (response) => {
+      toast.error(
+        "Failed to create link token reason : " + JSON.stringify(response)
+      );
     },
   });
 
