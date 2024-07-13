@@ -36,39 +36,54 @@ const app = new Hono()
       .where(eq(subscriptions.userId, auth.userId));
 
     if (existing?.subscriptionId) {
-      const subscription = await getSubscription(existing.subscriptionId);
+      try {
+        const subscription = await getSubscription(existing.subscriptionId);
+        console.log("Fetched subscription:", subscription);
 
-      const portalUrl = subscription.data?.data.attributes.urls.customer_portal;
+        const portalUrl =
+          subscription?.data?.data?.attributes?.urls?.customer_portal;
 
-      if (!portalUrl) {
+        if (!portalUrl) {
+          console.error("Portal URL is undefined");
+          return c.json({ error: "Internal error" }, 500);
+        }
+
+        return c.json({ data: portalUrl });
+      } catch (error) {
+        console.error("Error fetching subscription:", error);
+        return c.json({ error: "Internal error" }, 500);
+      }
+    }
+
+    try {
+      const checkout = await createCheckout(
+        process.env.LEMONSQUEEZY_STORE_ID!,
+        process.env.LEMONSQUEEZY_PRODUCT_ID!,
+        {
+          checkoutData: {
+            custom: {
+              user_id: auth.userId,
+            },
+          },
+          productOptions: {
+            redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL!}/`,
+          },
+        }
+      );
+      console.log("Created checkout:", checkout);
+
+      const checkoutUrl = checkout?.data?.data?.attributes?.url;
+
+      if (!checkoutUrl) {
+        console.error("Checkout URL is undefined");
         return c.json({ error: "Internal error" }, 500);
       }
 
-      return c.json({ data: portalUrl });
-    }
-
-    const checkout = await createCheckout(
-      process.env.LEMONSQUEEZY_STORE_ID!,
-      process.env.LEMONSQUEEZY_PRODUCT_ID!,
-      {
-        checkoutData: {
-          custom: {
-            user_id: auth.userId,
-          },
-        },
-        productOptions: {
-          redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL!}/`,
-        },
-      }
-    );
-
-    const checkoutUrl = checkout.data?.data.attributes.url;
-
-    if (!checkoutUrl) {
+      return c.json({ data: checkoutUrl });
+    } catch (error) {
+      console.error("Error creating checkout:", error);
       return c.json({ error: "Internal error" }, 500);
     }
-
-    return c.json({ data: checkoutUrl });
   })
   .post("/webhook", async (c) => {
     const text = await c.req.text();
@@ -87,55 +102,44 @@ const app = new Hono()
       return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const payload = JSON.parse(text);
-    const event = payload.meta.event_name;
+    try {
+      const payload = JSON.parse(text);
+      console.log("Webhook payload:", payload);
 
-    const subscriptionId = payload.data.id;
-    const userId = payload.meta.custom_data.user_id;
-    const status = payload.data.attributes.status;
+      const event = payload.meta.event_name;
+      const subscriptionId = payload.data.id;
+      const userId = payload.meta.custom_data.user_id;
+      const status = payload.data.attributes.status;
 
-    const [existing] = await db
-      .select()
-      .from(subscriptions)
-      .where(eq(subscriptions.subscriptionId, subscriptionId));
+      const [existing] = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.subscriptionId, subscriptionId));
 
-    if (event === "subscription_created") {
-      if (existing) {
-        await db
-          .update(subscriptions)
-          .set({
+      if (
+        event === "subscription_created" ||
+        event === "subscription_updated"
+      ) {
+        if (existing) {
+          await db
+            .update(subscriptions)
+            .set({ status })
+            .where(eq(subscriptions.subscriptionId, subscriptionId));
+        } else {
+          await db.insert(subscriptions).values({
+            id: createId(),
+            subscriptionId,
+            userId,
             status,
-          })
-          .where(eq(subscriptions.subscriptionId, subscriptionId));
-      } else {
-        await db.insert(subscriptions).values({
-          id: createId(),
-          subscriptionId,
-          userId,
-          status,
-        });
+          });
+        }
       }
-    }
 
-    if (event === "subscription_updated") {
-      if (existing) {
-        await db
-          .update(subscriptions)
-          .set({
-            status,
-          })
-          .where(eq(subscriptions.subscriptionId, subscriptionId));
-      } else {
-        await db.insert(subscriptions).values({
-          id: createId(),
-          subscriptionId,
-          userId,
-          status,
-        });
-      }
+      return c.json({}, 200);
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+      return c.json({ error: "Internal error" }, 500);
     }
-
-    return c.json({}, 200);
   });
 
 export default app;
