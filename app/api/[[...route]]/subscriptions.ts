@@ -80,8 +80,15 @@ const app = new Hono()
       }
 
       return c.json({ data: checkoutUrl });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating checkout:", error);
+
+      if (isLemonSqueezyError(error)) {
+        console.error("Detailed error:", error.cause[0].detail);
+      } else {
+        console.error("Unknown error:", error);
+      }
+
       return c.json({ error: "Internal error" }, 500);
     }
   })
@@ -136,10 +143,21 @@ const app = new Hono()
       }
 
       return c.json({}, 200);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error processing webhook:", error);
       return c.json({ error: "Internal error" }, 500);
     }
   });
+
+function isLemonSqueezyError(
+  error: unknown
+): error is { cause: [{ detail: string }] } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "cause" in error &&
+    Array.isArray((error as any).cause)
+  );
+}
 
 export default app;
